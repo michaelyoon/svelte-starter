@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { loginSchema, userTable } from '$lib/drizzle/schema/auth';
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
-import { verifyPassword } from '$lib/server/password';
+import { verifyPassword } from '$lib/server/passwords';
 
 export const load: PageServerLoad = async () => {
 	const form = await superValidate(zod(loginSchema));

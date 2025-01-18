@@ -5,7 +5,7 @@ import { redirect } from 'sveltekit-flash-message/server';
 import { db } from '$lib/server/db';
 import { registerSchema, userTable } from '$lib/drizzle/schema/auth';
 import { generateUniqueId } from '$lib/server/random';
-import { hashPassword } from '$lib/server/password';
+import { hashPassword } from '$lib/server/passwords';
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
 
 export const load: PageServerLoad = async () => {
