@@ -8,8 +8,8 @@ import { registerSchema, userTable } from '$lib/drizzle/schema/auth';
 import { generateUniqueId } from '$lib/server/random';
 import { hashPassword } from '$lib/server/passwords';
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
-import * as m from '$lib/paraglide/messages.js';
 import { verifyHCaptcha } from '$lib/server/hcaptcha';
+import * as m from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async () => {
 	const form = await superValidate(zod(registerSchema));
