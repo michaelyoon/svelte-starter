@@ -9,6 +9,7 @@
     import * as Form from "$lib/components/ui/form/index.js";
     import * as Alert from "$lib/components/ui/alert/index.js";
     import { Input } from "$lib/components/ui/input/index.js";
+	import HCaptchaWidget from "./hcaptcha-widget.svelte";
     import { loginSchema } from "$lib/drizzle/schema/auth";
 	import { dev } from "$app/environment";
 
@@ -23,6 +24,10 @@
     });
 
     const { form: formData, enhance, message, tainted, isTainted } = form;
+
+    let hCaptcha: any | undefined = $state(undefined);
+
+    $inspect(hCaptcha);
 </script>
  
 {#if $message}
@@ -52,6 +57,15 @@
             {#snippet children({ props })}
                 <Form.Label>Password</Form.Label>
                 <Input type="password" {...props} bind:value={$formData.password} />
+            {/snippet}
+        </Form.Control>
+        <Form.FieldErrors />
+    </Form.Field>
+
+    <Form.Field {form} name="hCaptchaToken">
+        <Form.Control>
+            {#snippet children({ props })}
+                <HCaptchaWidget bind:hCaptcha bind:value={$formData.hCaptchaToken} />
             {/snippet}
         </Form.Control>
         <Form.FieldErrors />

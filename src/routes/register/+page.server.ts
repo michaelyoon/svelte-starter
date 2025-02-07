@@ -9,6 +9,7 @@ import { generateUniqueId } from '$lib/server/random';
 import { hashPassword } from '$lib/server/passwords';
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
 import * as m from '$lib/paraglide/messages.js';
+import { verifyHCaptcha } from '$lib/server/hcaptcha';
 
 export const load: PageServerLoad = async () => {
 	const form = await superValidate(zod(registerSchema));
@@ -22,11 +23,17 @@ export const actions: Actions = {
 
 		const form = await superValidate(request, zod(registerSchema));
 
+		const { hCaptchaToken, email, username, password } = form.data;
+
+		const success = await verifyHCaptcha(hCaptchaToken);
+
+		if (!success) {
+			setError(form, '', m.hcaptcha_verification_failure());
+		}
+
 		if (!form.valid) {
 			return fail(400, { form });
 		}
-
-		const { email, username, password } = form.data;
 
 		let existingUserCount = await db.$count(userTable, eq(userTable.email, email));
 

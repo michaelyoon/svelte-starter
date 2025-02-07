@@ -62,23 +62,10 @@ export const registerSchema = createInsertSchema(userTable)
 			.max(MAX_USERNAME_LENGTH)
 			.regex(VALID_USERNAME_REGEX),
 		email: z.string().email(),
-		password: z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH)
+		password: z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH),
+		hCaptchaToken: z.string().min(1, 'Please verify that you are a human.')
 	});
 
-export const loginSchema = createInsertSchema(userTable)
-	.omit({
-		id: true,
-		email: true,
-		passwordHash: true,
-		passwordSalt: true,
-		createdAt: true,
-		updatedAt: true
-	})
-	.extend({
-		username: z
-			.string()
-			.min(MIN_USERNAME_LENGTH)
-			.max(MAX_USERNAME_LENGTH)
-			.regex(VALID_USERNAME_REGEX),
-		password: z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH)
-	});
+export const loginSchema = registerSchema.omit({
+	email: true
+});

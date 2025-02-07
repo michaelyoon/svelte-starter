@@ -7,7 +7,9 @@ import { db } from '$lib/server/db';
 import { loginSchema, userTable } from '$lib/drizzle/schema/auth';
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
 import { verifyPassword } from '$lib/server/passwords';
+import { verifyHCaptcha } from '$lib/server/hcaptcha';
 import * as m from '$lib/paraglide/messages.js';
+import { setError } from 'sveltekit-superforms';
 
 export const load: PageServerLoad = async () => {
 	const form = await superValidate(zod(loginSchema));
@@ -21,11 +23,17 @@ export const actions: Actions = {
 
 		const form = await superValidate(request, zod(loginSchema));
 
+		const { hCaptchaToken, username, password } = form.data;
+
+		const success = await verifyHCaptcha(hCaptchaToken);
+
+		if (!success) {
+			setError(form, '', m.hcaptcha_verification_failure());
+		}
+
 		if (!form.valid) {
 			return fail(400, { form });
 		}
-
-		const { username, password } = form.data;
 
 		const existingUser = await db.query.userTable.findFirst({
 			where: eq(userTable.username, username)
