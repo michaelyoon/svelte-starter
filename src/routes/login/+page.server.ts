@@ -1,5 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
-import { fail, message, superValidate } from 'sveltekit-superforms';
+import { fail, message, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { redirect } from 'sveltekit-flash-message/server';
 import { eq } from 'drizzle-orm';
@@ -9,7 +9,6 @@ import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib
 import { verifyPassword } from '$lib/server/passwords';
 import { verifyHCaptcha } from '$lib/server/hcaptcha';
 import * as m from '$lib/paraglide/messages.js';
-import { setError } from 'sveltekit-superforms';
 
 export const load: PageServerLoad = async () => {
 	const form = await superValidate(zod(loginSchema));
