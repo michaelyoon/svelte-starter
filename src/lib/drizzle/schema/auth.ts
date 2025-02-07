@@ -70,7 +70,10 @@ export const loginSchema = registerSchema.omit({
 	email: true
 });
 
-export const userSettingsSchema = registerSchema.omit({
-	password: true,
-	hCaptchaToken: true
-});
+export const userSettingsSchema = registerSchema
+	.omit({
+		hCaptchaToken: true
+	})
+	.extend({
+		password: z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH).optional()
+	});

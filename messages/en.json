@@ -9,5 +9,7 @@
 	"authentication_failure": "Incorrect username or password.",
 	"hcaptcha_verification_failure": "Unable to verify that you are human.",
 	"authentication_required": "Sign in to access this page.",
-	"changes_saved": "Changes saved."
+	"email_changed": "Email changed.",
+	"username_changed": "Username changed.",
+	"password_changed": "Password changed."
 }

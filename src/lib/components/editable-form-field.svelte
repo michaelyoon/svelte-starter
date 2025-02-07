@@ -10,20 +10,26 @@
         type,
         name,
         value = $bindable(),
+        placeholder,
         label,
         description,
         class: cls,
         inputClass = 'disabled:opacity-75',
+        onEdit,
+        onCancel,
         onSave
     } : {
         form: Form;
         type?: HTMLInputTypeAttribute;
         name: string;
         value: ValueType;
+        placeholder?: string;
         label?: Snippet;
         description?: Snippet;
         class?: string;
         inputClass?: string;
+        onEdit?: () => void;
+        onCancel?: () => void;
         onSave?: () => void | Promise<void>;
     } = $props();
 
@@ -44,7 +50,7 @@
             {/if}
             <div class="flex gap-2">
                 <!-- XXX: The `value` prop does not appear in the HTML, for some reason. -->
-                <Input {type} {...props} bind:value bind:ref disabled={!editing}
+                <Input {type} {...props} bind:value bind:ref disabled={!editing} {placeholder}
                     class={inputClass}
                 />
                 {#if !editing}
@@ -52,6 +58,7 @@
                         onclick={async () => {
                             originalValue = value;
                             editing = true;
+                            onEdit?.();
                             await tick();
                             ref?.focus();
                         }}
@@ -76,11 +83,13 @@
                     </Form.Button>
 
                     <Form.Button type="button" variant="outline"
-                        onclick={() => {
+                        onclick={async () => {
                             if (originalValue) {
                                 value = originalValue;
                             }
                             editing = false;
+                            await tick();
+                            onCancel?.();
                         }}
                     >
                         Cancel

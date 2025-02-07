@@ -6,6 +6,7 @@ import { fail, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import * as m from '$lib/paraglide/messages.js';
 import { redirect } from 'sveltekit-flash-message/server';
+import { hashPassword } from '$lib/server/passwords';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = await db.query.userTable.findFirst({
@@ -27,7 +28,7 @@ export const actions: Actions = {
 			return fail(400, { form });
 		}
 
-		const { email, username } = form.data;
+		const { email, username, password } = form.data;
 
 		let existingUserCount = await db.$count(
 			userTable,
@@ -51,8 +52,28 @@ export const actions: Actions = {
 			return fail(400, { form });
 		}
 
-		await db.update(userTable).set({ email, username }).where(eq(userTable.id, user!.id));
+		const original = await db.query.userTable.findFirst({ where: eq(userTable.id, user!.id) });
 
-		return redirect(pathname, { type: 'success', message: m.changes_saved() }, cookies);
+		let values: Record<string, string> = { email, username };
+
+		if (password) {
+			const { passwordHash, passwordSalt } = await hashPassword(password);
+			values = { ...values, passwordHash, passwordSalt };
+		}
+
+		await db.update(userTable).set(values).where(eq(userTable.id, user!.id));
+
+		let message: string;
+
+		// The UI only allows changing one field at a time.
+		if (email !== original!.email) {
+			message = m.email_changed();
+		} else if (username !== original!.username) {
+			message = m.username_changed();
+		} else {
+			message = m.password_changed();
+		}
+
+		return redirect(pathname, { type: 'success', message }, cookies);
 	}
 };

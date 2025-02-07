@@ -21,7 +21,7 @@
         validators: zodClient(userSettingsSchema),
     });
 
-    const { form: formData, enhance, submit } = form;
+    const { form: formData, errors, enhance, submit } = form;
 </script>
  
 <form method="post" class="space-y-4" use:enhance>
@@ -38,6 +38,21 @@
     >
         {#snippet label()}
             Username
+        {/snippet}
+        {#snippet description()}
+            This is your public display name.
+        {/snippet}
+    </EditableFormField>
+
+    <EditableFormField {form} type="password" name="password" bind:value={$formData.password}
+        placeholder="******************"
+        onCancel={() => {
+            $formData.password = undefined;
+        }}
+        onSave={submit}
+    >
+        {#snippet label()}
+            Password
         {/snippet}
     </EditableFormField>
 </form>

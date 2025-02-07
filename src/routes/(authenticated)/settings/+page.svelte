@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageServerData } from "./$types";
+    import Settings from "lucide-svelte/icons/settings";
 	import UserSettingsForm from "$lib/components/user-settings-form.svelte";
 
     let { data } : { data: PageServerData } = $props();
@@ -9,6 +10,11 @@
 
 <svelte:head><title>{pageTitle}</title></svelte:head>
 
-<h2 class="mb-4">{pageTitle}</h2>
+<div class="max-w-md mx-auto space-y-4">
+    <h2 class="flex items-center gap-2">
+        <Settings />
+        {pageTitle}
+    </h2>
 
-<UserSettingsForm data={data.form} />
+    <UserSettingsForm data={data.form} />
+</div>
