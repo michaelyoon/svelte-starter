@@ -7,6 +7,11 @@ import * as table from '$lib/server/db/schema';
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
+export type SessionUser = {
+	id: string;
+	username: string;
+};
+
 export const sessionCookieName = 'auth-session';
 
 export function generateSessionToken() {

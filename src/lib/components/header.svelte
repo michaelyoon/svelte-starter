@@ -1,16 +1,27 @@
 <script lang="ts">
+	import type { Snippet } from "svelte";
 	import DarkModeSwitch from "./dark-mode-switch.svelte";
 	import DarkModeMenu from "./dark-mode-menu.svelte";
+	import AuthSheet from "./auth-sheet.svelte";
+	import type { SessionUser } from "$lib/server/auth";
 	import { PUBLIC_APP_NAME } from "$env/static/public";
 
-    let { user } = $props();
+    let {
+        user,
+        heading
+    } : {
+        heading?: Snippet;
+        user: SessionUser | null
+    } = $props();
 </script>
 
 <header class="p-4 flex justify-between border-b">
     <h1>
-        <a href="/" class="flex items-center gap-1">
-            {PUBLIC_APP_NAME}
-        </a>
+        {#if heading}
+            {@render heading()}
+        {:else}
+            <a href="/">{PUBLIC_APP_NAME}</a>
+        {/if}
     </h1>
 
     <div class="flex items-center gap-2">
@@ -18,13 +29,6 @@
         <DarkModeSwitch />
         <DarkModeMenu />
 
-        {#if user}
-            <form action="/logout" method="post">
-                <button type="submit">Sign Out</button>
-            </form>
-        {:else}
-            <a href="/register">Create Account</a>
-            <a href="/login">Sign In</a>
-        {/if}
+        <AuthSheet {user} />
     </div>
 </header>
