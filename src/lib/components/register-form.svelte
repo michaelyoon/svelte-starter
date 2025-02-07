@@ -25,9 +25,6 @@
 
     let hCaptcha: any | undefined = $state(undefined);
 
-    $inspect($errors);
-    $inspect($allErrors);
-
     $effect(() => {
         if ($allErrors.length > 0) {
             hCaptcha?.reset();
