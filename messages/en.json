@@ -8,6 +8,6 @@
 	"username_unavailable": "This username is unavailable.",
 	"authentication_failure": "Incorrect username or password.",
 	"hcaptcha_verification_failure": "Unable to verify that you are human.",
-	"authentication_required": "Sign in to access this page."
-
+	"authentication_required": "Sign in to access this page.",
+	"changes_saved": "Changes saved."
 }

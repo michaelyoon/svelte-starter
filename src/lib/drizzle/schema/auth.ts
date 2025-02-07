@@ -69,3 +69,8 @@ export const registerSchema = createInsertSchema(userTable)
 export const loginSchema = registerSchema.omit({
 	email: true
 });
+
+export const userSettingsSchema = registerSchema.omit({
+	password: true,
+	hCaptchaToken: true
+});
