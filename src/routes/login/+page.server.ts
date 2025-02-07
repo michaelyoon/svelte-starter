@@ -7,6 +7,7 @@ import { db } from '$lib/server/db';
 import { loginSchema, userTable } from '$lib/drizzle/schema/auth';
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
 import { verifyPassword } from '$lib/server/passwords';
+import * as m from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async () => {
 	const form = await superValidate(zod(loginSchema));
@@ -30,10 +31,8 @@ export const actions: Actions = {
 			where: eq(userTable.username, username)
 		});
 
-		const messageText = 'Incorrect username or password'; // XXX: use ParaglideJS
-
 		if (!existingUser) {
-			return message(form, messageText);
+			return message(form, m.authentication_failure());
 		}
 
 		const { passwordHash, passwordSalt } = existingUser;
@@ -41,7 +40,7 @@ export const actions: Actions = {
 		const validPassword = await verifyPassword(password, passwordHash, passwordSalt);
 
 		if (!validPassword) {
-			return message(form, messageText);
+			return message(form, m.authentication_failure());
 		}
 
 		// Start the user session.
@@ -49,8 +48,6 @@ export const actions: Actions = {
 		const session = await createSession(sessionToken, existingUser.id);
 		setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-		const flashMessage = 'Signed in.'; // XXX: use ParaglideJS
-
-		return redirect('/', { type: 'success', message: flashMessage }, cookies);
+		return redirect('/', { type: 'success', message: m.logged_in() }, cookies);
 	}
 };

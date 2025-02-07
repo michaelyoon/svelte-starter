@@ -8,6 +8,7 @@ import { registerSchema, userTable } from '$lib/drizzle/schema/auth';
 import { generateUniqueId } from '$lib/server/random';
 import { hashPassword } from '$lib/server/passwords';
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
+import * as m from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async () => {
 	const form = await superValidate(zod(registerSchema));
@@ -30,13 +31,13 @@ export const actions: Actions = {
 		let existingUserCount = await db.$count(userTable, eq(userTable.email, email));
 
 		if (existingUserCount > 0) {
-			setError(form, 'email', 'This email has already been registered.'); // XXX: use ParaglideJS
+			setError(form, 'email', m.email_already_registered());
 		}
 
 		existingUserCount = await db.$count(userTable, eq(userTable.username, username));
 
 		if (existingUserCount > 0) {
-			setError(form, 'username', 'This username is unavailable.'); // XXX: use ParaglideJS
+			setError(form, 'username', m.username_unavailable());
 		}
 
 		if (!form.valid) {
@@ -57,7 +58,6 @@ export const actions: Actions = {
 
 		setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-		const message = 'Account created'; // XXX: use ParaglideJS
-		return redirect('/', { type: 'success', message }, cookies);
+		return redirect('/', { type: 'success', message: m.registered() }, cookies);
 	}
 };
