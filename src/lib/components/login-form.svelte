@@ -25,9 +25,8 @@
 
     const { form: formData, enhance, message, tainted, isTainted } = form;
 
+    // XXX: Specify the type of this variable?
     let hCaptcha: any | undefined = $state(undefined);
-
-    $inspect(hCaptcha);
 </script>
  
 {#if $message}
