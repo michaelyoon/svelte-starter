@@ -1,22 +1,26 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
     import Menu from "lucide-svelte/icons/menu";
+    import Settings from "lucide-svelte/icons/settings";
+    import { Separator } from "$lib/components/ui/separator/index.js";
+    import LogOut from "lucide-svelte/icons/log-out";
     import * as Sheet from "$lib/components/ui/sheet/index.js";
 	import { Button, buttonVariants } from "$lib/components/ui/button/index.js";
 	import type { SessionUser } from "$lib/server/auth";
 	import { cn } from "$lib/utils";
-	import { PUBLIC_APP_NAME } from "$env/static/public";
 
     let {
         user,
         title,
         content,
-        class: cls
+        class: cls,
+        buttonClass = 'justify-start w-full p-1.5'
     } : {
-        user: SessionUser | null;
+        user: SessionUser;
         title?: Snippet;
         content?: Snippet;
         class?: string;
+        buttonClass?: string;
     }= $props();
 
     let open = $state(false);
@@ -42,41 +46,32 @@
                 {#if title}
                     {@render title()}
                 {:else}
-                    {#if user}
-                        Hi, {user.username}
-                    {:else}
-                        Welcome to {PUBLIC_APP_NAME}
-                    {/if}
+                    {user.username}
                 {/if}
             </Sheet.Title>
         </Sheet.Header>
         {#if content}
             {@render content()}
-        {:else}
-            <div class="py-4 flex flex-col gap-4">
-                {#if user}
-                    <form action="/logout" method="post">
-                        <Button type="submit">Sign Out</Button>
-                    </form>
-                {:else}
-                        <div class="flex flex-col gap-1.5">
-                            Create a free account now.
-                            <Button href="/register"
-                                onclick={() => { open = false; }}
-                            >
-                                Sign Up
-                            </Button>
-                        </div>
+        {:else}            
+            <div class="py-4 flex flex-col gap-2">
+                <Separator />
 
-                        <div class="flex flex-col gap-1.5">
-                            Already have an account?
-                            <Button href="/login"
-                                onclick={() => { open = false; }}
-                            >
-                                Sign In
-                            </Button>
-                        </div>
-                {/if}
+                <Button variant="ghost" class={buttonClass}
+                    href="/settings"
+                    onclick={() => { open = false; }}
+                >
+                    <Settings />
+                    Settings
+                </Button>
+
+                <Separator />
+
+                <form action="/logout" method="post">
+                    <Button type="submit" variant="ghost" class={buttonClass}>
+                        <LogOut />
+                        Sign Out
+                    </Button>
+                </form>
             </div>
         {/if}
     </Sheet.Content>
