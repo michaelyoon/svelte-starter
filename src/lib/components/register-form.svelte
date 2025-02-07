@@ -40,7 +40,7 @@
         <Form.Control>
             {#snippet children({ props })}
                 <Form.Label>Email</Form.Label>
-                <Input {...props} bind:value={$formData.email} autofocus />
+                <Input type="email" {...props} bind:value={$formData.email} autofocus />
             {/snippet}
         </Form.Control>
         <Form.FieldErrors />
