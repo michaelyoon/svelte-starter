@@ -10,9 +10,13 @@
     import { registerSchema } from "$lib/drizzle/schema/auth";
 	import { dev } from "$app/environment";
 
-    let { data }: { data: { form: SuperValidated<Infer<typeof registerSchema>> } } = $props();
+    let {
+        data
+    }: {
+        data: SuperValidated<Infer<typeof registerSchema>>
+    } = $props();
 
-    const form = superForm(data.form, {
+    const form = superForm(data, {
         validators: zodClient(registerSchema),
     });
 

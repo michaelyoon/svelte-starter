@@ -1,5 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
-import { fail, superValidate } from 'sveltekit-superforms';
+import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { redirect } from 'sveltekit-flash-message/server';
 import { eq } from 'drizzle-orm';
@@ -30,8 +30,10 @@ export const actions: Actions = {
 			where: eq(userTable.username, username)
 		});
 
+		const messageText = 'Incorrect username or password'; // XXX: use ParaglideJS
+
 		if (!existingUser) {
-			return fail(400, { message: 'Incorrect username or password' });
+			return message(form, messageText);
 		}
 
 		const { passwordHash, passwordSalt } = existingUser;
@@ -39,7 +41,7 @@ export const actions: Actions = {
 		const validPassword = await verifyPassword(password, passwordHash, passwordSalt);
 
 		if (!validPassword) {
-			return fail(400, { message: 'Incorrect username or password' });
+			return message(form, messageText);
 		}
 
 		// Start the user session.
@@ -47,7 +49,8 @@ export const actions: Actions = {
 		const session = await createSession(sessionToken, existingUser.id);
 		setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-		const message = 'Signed in.'; // XXX: use ParaglideJS
-		return redirect('/', { type: 'success', message }, cookies);
+		const flashMessage = 'Signed in.'; // XXX: use ParaglideJS
+
+		return redirect('/', { type: 'success', message: flashMessage }, cookies);
 	}
 };

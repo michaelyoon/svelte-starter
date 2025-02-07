@@ -5,20 +5,35 @@
         superForm,
     } from "sveltekit-superforms";
     import { zodClient } from "sveltekit-superforms/adapters";
+    import CircleAlert from "lucide-svelte/icons/circle-alert";
     import * as Form from "$lib/components/ui/form/index.js";
+    import * as Alert from "$lib/components/ui/alert/index.js";
     import { Input } from "$lib/components/ui/input/index.js";
     import { loginSchema } from "$lib/drizzle/schema/auth";
 	import { dev } from "$app/environment";
 
-    let { data }: { data: { form: SuperValidated<Infer<typeof loginSchema>> } } = $props();
+    let {
+        data
+    }: {
+        data: SuperValidated<Infer<typeof loginSchema>>
+    } = $props();
 
-    const form = superForm(data.form, {
+    const form = superForm(data, {
         validators: zodClient(loginSchema),
     });
 
-    const { form: formData, enhance, tainted, isTainted, errors } = form;
+    const { form: formData, enhance, message, tainted, isTainted } = form;
 </script>
  
+{#if $message}
+    <Alert.Root variant="destructive" class="items-center">
+        <CircleAlert size={16} />
+        <Alert.Description>
+            {$message}
+        </Alert.Description>
+    </Alert.Root>
+{/if}
+
 <form method="post" class="space-y-4" use:enhance>
     <Form.Field {form} name="username" class="space-y-1">
         <Form.Control>
