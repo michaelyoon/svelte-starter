@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "new_email" "citext";

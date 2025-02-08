@@ -30,6 +30,7 @@ export const userTable = pgTable('user', {
 	id: text().primaryKey(),
 	username: citext().notNull().unique(),
 	email: citext().notNull().unique(),
+	newEmail: citext(),
 	passwordHash: text().notNull(),
 	passwordSalt: text().notNull(),
 	verifiedAt: timestamp({ withTimezone: true }),
@@ -97,6 +98,11 @@ export const userSettingsSchema = registerSchema
 
 export const verifyUserSchema = z.object({
 	verificationCode: z.string().length(VERIFICATION_CODE_LENGTH)
+});
+
+export const changeEmailSchema = z.object({
+	newEmail: z.string().email(),
+	password: passwordSchema
 });
 
 export const changePasswordSchema = z.object({
