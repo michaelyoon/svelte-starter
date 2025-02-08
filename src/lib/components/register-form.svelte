@@ -81,7 +81,7 @@
 
     <div class="text-sm">
         Already have an account?
-        <a href="/login" class="text-blue-600 hover:underline">Sign in</a>
+        <a href="/login" class="link">Sign in.</a>
     </div>
 </form>
 

@@ -58,12 +58,15 @@
                 <Input type="password" {...props} bind:value={$formData.password} />
             {/snippet}
         </Form.Control>
+        <Form.Description>
+            <a href="/reset-password" class="link">Forgot password?</a>
+        </Form.Description>
         <Form.FieldErrors />
     </Form.Field>
 
     <Form.Field {form} name="hCaptchaToken">
         <Form.Control>
-            {#snippet children({ props })}
+            {#snippet children()}
                 <HCaptchaWidget bind:hCaptcha bind:value={$formData.hCaptchaToken} />
             {/snippet}
         </Form.Control>

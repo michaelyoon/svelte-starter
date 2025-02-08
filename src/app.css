@@ -24,7 +24,7 @@
     --destructive-foreground: 210 40% 98%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
-	--sidebar-background: 0 0% 98%;
+  	--sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -69,6 +69,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -83,5 +84,9 @@
 
   h3 {
     @apply text-xl;
+  }
+
+  a.link {
+    @apply text-blue-600;
   }
 }
