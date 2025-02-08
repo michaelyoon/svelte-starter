@@ -7,7 +7,7 @@ import { db } from '$lib/server/db';
 import { registerSchema, userTable } from '$lib/drizzle/schema/auth';
 import { generateUniqueId } from '$lib/server/random';
 import { hashPassword } from '$lib/server/passwords';
-import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
+import { startSession } from '$lib/server/auth';
 import { verifyHCaptcha } from '$lib/server/hcaptcha';
 import { generateVerificationCode, sendVerificationCode } from '$lib/server/verification';
 import * as m from '$lib/paraglide/messages.js';
@@ -69,12 +69,12 @@ export const actions: Actions = {
 		await sendVerificationCode(verificationCode!, email);
 
 		// Start a session for the new user.
-		const sessionToken = generateSessionToken();
+		await startSession(id, event);
 
-		const session = await createSession(sessionToken, id);
-
-		setSessionTokenCookie(event, sessionToken, session.expiresAt);
-
-		return redirect('/verify', { type: 'success', message: m.verification_code_sent() }, cookies);
+		return redirect(
+			'/verify-email',
+			{ type: 'success', message: m.verification_code_sent() },
+			cookies
+		);
 	}
 };

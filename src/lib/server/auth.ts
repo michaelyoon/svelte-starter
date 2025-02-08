@@ -12,7 +12,7 @@ export type SessionUser = {
 	username: string;
 };
 
-export const sessionCookieName = 'auth-session';
+export const sessionCookieName = 'auth-session'; // XXX: move to env var
 
 export function generateSessionToken() {
 	const bytes = crypto.getRandomValues(new Uint8Array(18));
@@ -89,4 +89,12 @@ export function deleteSessionTokenCookie(event: RequestEvent) {
 	event.cookies.delete(sessionCookieName, {
 		path: '/'
 	});
+}
+
+export async function startSession(userId: string, event: RequestEvent) {
+	const sessionToken = generateSessionToken();
+
+	const session = await createSession(sessionToken, userId);
+
+	setSessionTokenCookie(event, sessionToken, session.expiresAt);
 }
