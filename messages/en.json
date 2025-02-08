@@ -1,6 +1,9 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
 	"hello_world": "Hello, {name} from en!",
+	"verification_code_sent": "Check your email for your verification code.",
+	"verification_code_email_subject": "Your {appName} code is {verificationCode}",
+	"verified": "Your account has been verified.",
 	"registered": "Account created.",
 	"logged_in": "Signed in.",
 	"logged_out": "Signed out.",

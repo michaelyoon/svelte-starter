@@ -3,13 +3,30 @@ import { fail, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { redirect } from 'sveltekit-flash-message/server';
 import { eq } from 'drizzle-orm';
+import { htmlRender } from '@sveltelaunch/svelte-5-email';
+import VerificationCodeTemplate from '$lib/emails/verification-code-template.svelte';
 import { db } from '$lib/server/db';
-import { registerSchema, userTable } from '$lib/drizzle/schema/auth';
+import { registerSchema, userTable, verificationCodeTable } from '$lib/drizzle/schema/auth';
 import { generateUniqueId } from '$lib/server/random';
 import { hashPassword } from '$lib/server/passwords';
-import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
+import {
+	createSession,
+	generateSessionToken,
+	setSessionTokenCookie,
+	generateVerificationCode
+} from '$lib/server/auth';
 import { verifyHCaptcha } from '$lib/server/hcaptcha';
+import { sendEmail } from '$lib/server/email';
 import * as m from '$lib/paraglide/messages.js';
+import { SEND_MAIL_FROM, VERIFICATION_CODE_DURATION_MINUTES } from '$env/static/private';
+import { PUBLIC_APP_NAME } from '$env/static/public';
+import { MINUTE_IN_MS } from '$lib/constants';
+
+const durationMinutes = parseInt(VERIFICATION_CODE_DURATION_MINUTES);
+
+if (isNaN(durationMinutes)) {
+	throw new Error(`Invalid VERIFICATION_CODE_DURATION_MINUTES: ${durationMinutes}`);
+}
 
 export const load: PageServerLoad = async () => {
 	const form = await superValidate(zod(registerSchema));
@@ -54,9 +71,38 @@ export const actions: Actions = {
 		// Create the user.
 		const id = generateUniqueId();
 
+		const verificationCode = generateVerificationCode();
+
 		const { passwordHash, passwordSalt } = await hashPassword(password);
 
-		await db.insert(userTable).values({ id, username, email, passwordHash, passwordSalt });
+		await db.transaction(async (tx) => {
+			await tx.insert(userTable).values({ id, username, email, passwordHash, passwordSalt });
+
+			const expiresAt = new Date(Date.now() + durationMinutes * MINUTE_IN_MS);
+
+			await tx
+				.insert(verificationCodeTable)
+				.values({ userId: id, email, value: verificationCode, expiresAt });
+		});
+
+		// Email the verification code to the user.
+		const from = SEND_MAIL_FROM;
+
+		const subject = m.verification_code_email_subject({
+			appName: PUBLIC_APP_NAME,
+			verificationCode
+		});
+
+		const html = htmlRender({
+			template: VerificationCodeTemplate,
+			props: {
+				appName: PUBLIC_APP_NAME,
+				verificationCode
+			},
+			options: {}
+		});
+
+		await sendEmail({ from, to: email, subject, html });
 
 		// Start a session for the new user.
 		const sessionToken = generateSessionToken();
@@ -65,6 +111,6 @@ export const actions: Actions = {
 
 		setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-		return redirect('/', { type: 'success', message: m.registered() }, cookies);
+		return redirect('/verify', { type: 'success', message: m.verification_code_sent() }, cookies);
 	}
 };
