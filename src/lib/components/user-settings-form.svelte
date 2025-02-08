@@ -5,6 +5,8 @@
         superForm,
     } from "sveltekit-superforms";
     import { zodClient } from "sveltekit-superforms/adapters";
+    import * as Form from "$lib/components/ui/form/index.js";
+    import { Input } from "$lib/components/ui/input/index.js";
 	import EditableFormField from "./editable-form-field.svelte";
     import { userSettingsSchema } from "$lib/drizzle/schema/auth";
 	import { dev } from "$app/environment";
@@ -44,17 +46,18 @@
         {/snippet}
     </EditableFormField>
 
-    <EditableFormField {form} type="password" name="password" bind:value={$formData.password}
-        placeholder="******************"
-        onCancel={() => {
-            $formData.password = undefined;
-        }}
-        onSave={submit}
-    >
-        {#snippet label()}
-            Password
-        {/snippet}
-    </EditableFormField>
+    <Form.Field {form} name="password">
+        <Form.Control>
+            {#snippet children({ props })}
+                <Form.Label>Password</Form.Label>
+                <div class="flex gap-2">
+                    <Input type="password" {...props} placeholder="********************" disabled={true} />
+                    <Form.Button variant="outline" href="/settings/password">Change</Form.Button>
+                </div>
+            {/snippet}
+        </Form.Control>
+        <Form.FieldErrors />
+    </Form.Field>
 </form>
 
 {#if dev}

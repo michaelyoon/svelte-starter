@@ -62,6 +62,8 @@ export type SelectUser = typeof userTable.$inferSelect;
 
 export type InsertUser = typeof userTable.$inferSelect;
 
+export const passwordSchema = z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH);
+
 export const registerSchema = createInsertSchema(userTable)
 	.omit({
 		id: true,
@@ -77,7 +79,7 @@ export const registerSchema = createInsertSchema(userTable)
 			.max(MAX_USERNAME_LENGTH)
 			.regex(VALID_USERNAME_REGEX),
 		email: z.string().email(),
-		password: z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH),
+		password: passwordSchema,
 		hCaptchaToken: z.string().min(1, 'Please verify that you are a human.')
 	});
 
@@ -90,9 +92,14 @@ export const userSettingsSchema = registerSchema
 		hCaptchaToken: true
 	})
 	.extend({
-		password: z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH).optional()
+		password: passwordSchema.optional()
 	});
 
 export const verifyUserSchema = z.object({
 	verificationCode: z.string().length(VERIFICATION_CODE_LENGTH)
+});
+
+export const changePasswordSchema = z.object({
+	password: passwordSchema,
+	newPassword: passwordSchema
 });

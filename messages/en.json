@@ -13,6 +13,7 @@
 	"authentication_failure": "Incorrect username or password.",
 	"hcaptcha_verification_failure": "Unable to verify that you are human.",
 	"authentication_required": "Sign in to access this page.",
+	"incorrect_password": "Incorrect password.",
 	"email_changed": "Email changed.",
 	"username_changed": "Username changed.",
 	"password_changed": "Password changed."
