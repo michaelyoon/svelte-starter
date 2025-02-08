@@ -8,6 +8,13 @@
       "when": 1737172609793,
       "tag": "0000_violet_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1738978884119,
+      "tag": "0001_luxuriant_wolverine",
+      "breakpoints": true
     }
   ]
 }
