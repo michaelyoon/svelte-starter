@@ -15,6 +15,13 @@
       "when": 1738978884119,
       "tag": "0001_luxuriant_wolverine",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1738992224345,
+      "tag": "0002_colossal_bloodstorm",
+      "breakpoints": true
     }
   ]
 }
