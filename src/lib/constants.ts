@@ -1,0 +1,13 @@
+import { PUBLIC_VERIFICATION_CODE_LENGTH } from '$env/static/public';
+
+export const MINUTE_IN_MS = 1000 * 60;
+export const HOUR_IN_MS = MINUTE_IN_MS * 60;
+export const DAY_IN_MS = HOUR_IN_MS * 24;
+
+const VERIFICATION_CODE_LENGTH = parseInt(PUBLIC_VERIFICATION_CODE_LENGTH);
+
+if (isNaN(VERIFICATION_CODE_LENGTH)) {
+	throw new Error(`Invalid VERIFICATION_CODE_LENGTH: ${VERIFICATION_CODE_LENGTH}`);
+}
+
+export { VERIFICATION_CODE_LENGTH };
