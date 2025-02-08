@@ -4,7 +4,7 @@
 
     let { data } : { data: PageServerData } = $props();
 
-    const pageTitle = 'Verify Your Account';
+    const pageTitle = 'Verify Your Email Address';
 </script>
 
 <svelte:head><title>{pageTitle}</title></svelte:head>

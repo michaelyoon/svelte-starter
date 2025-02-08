@@ -27,13 +27,18 @@
 </script>
  
 <form method="post" class="space-y-4" use:enhance>
-    <EditableFormField {form} type="email" name="email" bind:value={$formData.email}
-        onSave={submit}
-    >
-        {#snippet label()}
-            Email
-        {/snippet}
-    </EditableFormField>
+    <Form.Field {form} name="password">
+        <Form.Control>
+            {#snippet children({ props })}
+                <Form.Label>Email</Form.Label>
+                <div class="flex gap-2">
+                    <Input type="email" {...props} value={$formData.email} disabled={true} />
+                    <Form.Button variant="outline" href="/settings/email">Change</Form.Button>
+                </div>
+            {/snippet}
+        </Form.Control>
+        <Form.FieldErrors />
+    </Form.Field>
 
     <EditableFormField {form} name="username" bind:value={$formData.username}
         onSave={submit}

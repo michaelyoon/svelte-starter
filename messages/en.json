@@ -4,7 +4,7 @@
 	"verification_code_sent": "Check your email for your verification code.",
 	"verification_code_resent": "Check your email for your new verification code.",
 	"verification_code_email_subject": "Your {appName} code is {verificationCode}",
-	"verified": "Your account has been verified.",
+	"email_verified": "Your email address has been verified.",
 	"registered": "Account created.",
 	"logged_in": "Signed in.",
 	"logged_out": "Signed out.",

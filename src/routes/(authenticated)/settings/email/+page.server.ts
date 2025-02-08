@@ -5,25 +5,27 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { redirect } from 'sveltekit-flash-message/server';
 import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { changePasswordSchema, userTable } from '$lib/drizzle/schema';
-import { hashPassword, verifyPassword } from '$lib/server/passwords';
+import { changeEmailSchema, userTable } from '$lib/drizzle/schema';
+import { verifyPassword } from '$lib/server/passwords';
+import { generateVerificationCode } from '$lib/server/verification';
+import { sendVerificationCode } from '$lib/server/verification';
 import * as m from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async () => {
-	const form = await superValidate(zod(changePasswordSchema));
+	const form = await superValidate(zod(changeEmailSchema));
 
 	return { form };
 };
 
 export const actions: Actions = {
 	default: async ({ request, locals, cookies }) => {
-		const form = await superValidate(request, zod(changePasswordSchema));
+		const form = await superValidate(request, zod(changeEmailSchema));
 
 		if (!form.valid) {
 			return fail(400, { form });
 		}
 
-		const { password, newPassword } = form.data;
+		const { newEmail, password } = form.data;
 
 		const user = await db.query.userTable.findFirst({
 			where: eq(userTable.id, locals.user!.id)
@@ -40,13 +42,20 @@ export const actions: Actions = {
 			return fail(400, { form });
 		}
 
-		const { passwordHash, passwordSalt } = await hashPassword(newPassword);
+		let verificationCode: string | undefined = undefined;
 
-		await db
-			.update(userTable)
-			.set({ passwordHash, passwordSalt, updatedAt: new Date() })
-			.where(eq(userTable.id, user.id));
+		await db.transaction(async (tx) => {
+			await tx
+				.update(userTable)
+				.set({ verifiedAt: null, updatedAt: new Date() })
+				.where(eq(userTable.id, user.id));
 
-		return redirect('/settings', { type: 'success', message: m.password_changed() }, cookies);
+			verificationCode = await generateVerificationCode(tx, user.id, newEmail);
+		});
+
+		// Require the user to verify their new email address.
+		await sendVerificationCode(verificationCode!, newEmail);
+
+		return redirect('/verify', { type: 'success', message: m.verification_code_sent() }, cookies);
 	}
 };

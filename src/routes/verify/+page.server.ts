@@ -59,8 +59,19 @@ export const actions: Actions = {
 
 		const { userId } = verificationCode;
 
+		const user = await db.query.userTable.findFirst({ where: eq(userTable.id, userId) });
+
+		if (!user) {
+			error(400); // Bad Request
+		}
+
+		const now = new Date();
+
 		await db.transaction(async (tx) => {
-			await tx.update(userTable).set({ verifiedAt: new Date() }).where(eq(userTable.id, userId));
+			await tx
+				.update(userTable)
+				.set({ email: verificationCode.email, verifiedAt: now, updatedAt: now })
+				.where(eq(userTable.id, userId));
 
 			await tx.delete(verificationCodeTable).where(eq(verificationCodeTable.userId, userId));
 
@@ -78,7 +89,7 @@ export const actions: Actions = {
 
 		setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-		return redirect('/', { type: 'success', message: m.verified() }, cookies);
+		return redirect('/', { type: 'success', message: m.email_verified() }, cookies);
 	},
 
 	resend: async ({ locals, url: { pathname }, cookies }) => {
