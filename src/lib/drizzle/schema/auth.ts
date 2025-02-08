@@ -30,7 +30,6 @@ export const userTable = pgTable('user', {
 	id: text().primaryKey(),
 	username: citext().notNull().unique(),
 	email: citext().notNull().unique(),
-	newEmail: citext(),
 	passwordHash: text().notNull(),
 	passwordSalt: text().notNull(),
 	verifiedAt: timestamp({ withTimezone: true }),
