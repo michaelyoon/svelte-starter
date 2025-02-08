@@ -36,6 +36,20 @@
       "when": 1739039220189,
       "tag": "0004_parallel_epoch",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1739051442780,
+      "tag": "0005_graceful_otto_octavius",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1739051454705,
+      "tag": "0006_sparkling_tyrannus",
+      "breakpoints": true
     }
   ]
 }

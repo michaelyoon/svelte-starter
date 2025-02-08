@@ -45,12 +45,13 @@ export const sessionTable = pgTable('session', {
 });
 
 export const verificationCodeTable = pgTable('verification_code', {
+	value: text().notNull().primaryKey(),
 	userId: text()
 		.notNull()
 		.references(() => userTable.id, { onDelete: 'cascade' })
-		.primaryKey(),
+		.unique(),
 	email: text().notNull().unique(),
-	value: text().notNull(),
+	//  type: text().notNull(), //: verify_email, reset_password
 	expiresAt: timestamp({ withTimezone: true }).notNull()
 });
 
@@ -61,6 +62,10 @@ export type InsertSession = typeof sessionTable.$inferSelect;
 export type SelectUser = typeof userTable.$inferSelect;
 
 export type InsertUser = typeof userTable.$inferSelect;
+
+export type SelectVerificationCode = typeof verificationCodeTable.$inferSelect;
+
+export type InsertVerificationCode = typeof verificationCodeTable.$inferSelect;
 
 export const passwordSchema = z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH);
 
@@ -95,7 +100,7 @@ export const userSettingsSchema = registerSchema
 		password: passwordSchema.optional()
 	});
 
-export const verifyUserSchema = z.object({
+export const verifySchema = z.object({
 	verificationCode: z.string().length(VERIFICATION_CODE_LENGTH)
 });
 
@@ -107,4 +112,12 @@ export const changeEmailSchema = z.object({
 export const changePasswordSchema = z.object({
 	password: passwordSchema,
 	newPassword: passwordSchema
+});
+
+export const forgotPasswordSchema = z.object({
+	email: z.string().email()
+});
+
+export const resetPasswordSchema = verifySchema.extend({
+	password: passwordSchema
 });
