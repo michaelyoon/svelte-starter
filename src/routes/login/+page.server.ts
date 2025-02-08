@@ -6,8 +6,8 @@ import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { loginSchema, userTable } from '$lib/drizzle/schema/auth';
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
-import { verifyPassword } from '$lib/server/passwords';
 import { verifyHCaptcha } from '$lib/server/hcaptcha';
+import { verifyPassword } from '$lib/server/passwords';
 import * as m from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async () => {
