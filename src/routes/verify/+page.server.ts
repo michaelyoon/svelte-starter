@@ -1,4 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
+import { error } from '@sveltejs/kit';
 import { fail, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { redirect } from 'sveltekit-flash-message/server';
@@ -10,11 +11,14 @@ import {
 	verificationCodeTable,
 	verifyUserSchema
 } from '$lib/drizzle/schema';
-import { deleteSessionTokenCookie } from '$lib/server/auth';
+import {
+	createSession,
+	deleteSessionTokenCookie,
+	generateSessionToken,
+	setSessionTokenCookie
+} from '$lib/server/auth';
 import * as m from '$lib/paraglide/messages.js';
-import { createSession } from '$lib/server/auth';
-import { generateSessionToken } from '$lib/server/auth';
-import { setSessionTokenCookie } from '$lib/server/auth';
+import { generateVerificationCode, sendVerificationCode } from '$lib/server/verification';
 
 export const load: PageServerLoad = async () => {
 	const form = await superValidate(zod(verifyUserSchema));
@@ -75,5 +79,25 @@ export const actions: Actions = {
 		setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
 		return redirect('/', { type: 'success', message: m.verified() }, cookies);
+	},
+
+	resend: async ({ locals, url: { pathname }, cookies }) => {
+		if (!locals.user) {
+			error(401); // Not Authorized
+		}
+
+		const user = await db.query.userTable.findFirst({ where: eq(userTable.id, locals.user.id) });
+
+		if (!user) {
+			error(401); // Not Authorized
+		}
+
+		const verificationCode = await db.transaction(async (tx) => {
+			return await generateVerificationCode(tx, user.id, user.email);
+		});
+
+		await sendVerificationCode(verificationCode, user.email);
+
+		return redirect(pathname, { type: 'success', message: m.verification_code_resent() }, cookies);
 	}
 };

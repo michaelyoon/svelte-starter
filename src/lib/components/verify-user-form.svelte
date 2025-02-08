@@ -8,18 +8,23 @@
 
     let {
         data,
-        action
+        action,
+        resendAction
     } : {
         data: SuperValidated<Infer<typeof verifyUserSchema>>;
         action?: string;
+        resendAction?: string;
     } = $props();
 
     const form = superForm(data, zod(verifyUserSchema));
 
     const { form: formData, enhance } = form;
+
+    const resendForm = superForm({});
+
+    const { enhance: resendEnhance } = resendForm;
 </script>
 
-<!-- <form action="/?/inputOtp" method="POST" class="w-2/3 space-y-6" use:enhance> -->
 <form {action} method="post" class="space-y-4" use:enhance>
     <Form.Field {form} name="verificationCode">
         <Form.Control>
@@ -37,10 +42,16 @@
                 </InputOTP.Root>
             {/snippet}
         </Form.Control>
-        <!-- <Form.Description>
-            Please enter the one-time password sent to your phone.
-        </Form.Description> -->
         <Form.FieldErrors />
     </Form.Field>
+
     <Form.Button>Verify</Form.Button>
 </form>
+
+{#if resendAction}
+    <form action={resendAction} method="post" class="space-y-4" use:resendEnhance>
+        <button type="submit" class="text-sm">
+            Resend code
+        </button>
+    </form>
+{/if}

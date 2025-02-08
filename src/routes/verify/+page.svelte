@@ -12,5 +12,7 @@
 <div class="max-w-sm mx-auto space-y-4">
     <h2>{pageTitle}</h2>
 
-    <VerifyUserForm action="?/verify" data={data.form} />
+    <p>Please enter the code sent to your email address.</p>
+
+    <VerifyUserForm data={data.form} action="?/verify" resendAction="?/resend" />
 </div>
