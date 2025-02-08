@@ -78,6 +78,11 @@
     >
         Create Account
     </Form.Button>
+
+    <div class="text-sm">
+        Already have an account?
+        <a href="/login" class="text-blue-600 hover:underline">Sign in</a>
+    </div>
 </form>
 
 {#if dev}
