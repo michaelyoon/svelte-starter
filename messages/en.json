@@ -4,6 +4,8 @@
 	"verification_code_sent": "Check your email for your verification code.",
 	"verification_code_resent": "Check your email for your new verification code.",
 	"verification_code_email_subject": "Your {appName} code is {verificationCode}",
+	"invalid_verification_code": "Invalid code.",
+	"expired_verification_code": "This code has expired.",
 	"email_verified": "Your email address has been verified.",
 	"registered": "Account created.",
 	"logged_in": "Signed in.",
@@ -14,7 +16,8 @@
 	"hcaptcha_verification_failure": "Unable to verify that you are human.",
 	"authentication_required": "Sign in to access this page.",
 	"incorrect_password": "Incorrect password.",
-	"email_changed": "Email changed.",
-	"username_changed": "Username changed.",
-	"password_changed": "Password changed."
+	"email_changed": "Your email address has been changed.",
+	"username_changed": "Your username has been changed.",
+	"password_changed": "Your password has been changed.",
+	"password_reset": "Your password has been reset."
 }

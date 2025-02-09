@@ -2,7 +2,7 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase64url, encodeHexLowerCase } from '@oslojs/encoding';
-import { db } from '$lib/server/db';
+import { db, type Database, type Transaction } from '$lib/server/db';
 import { sessionTable, userTable, type InsertSession } from '$lib/drizzle/schema';
 import { DAY_IN_MS } from '$lib/constants';
 import { RENEW_SESSION_DAYS, SESSION_DURATION_DAYS } from './constants';
@@ -20,7 +20,7 @@ export function generateSessionToken() {
 	return token;
 }
 
-export async function createSession(token: string, userId: string) {
+export async function createSession(db: Database | Transaction, token: string, userId: string) {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 
 	const session: InsertSession = {
@@ -91,10 +91,24 @@ export function deleteSessionTokenCookie(event: RequestEvent) {
 	});
 }
 
-export async function startSession(userId: string, event: RequestEvent) {
+export async function invalidateAllSessions(
+	db: Database | Transaction,
+	userId: string,
+	event: RequestEvent
+) {
+	await db.delete(sessionTable).where(eq(sessionTable.userId, userId));
+
+	deleteSessionTokenCookie(event);
+}
+
+export async function startSession(
+	db: Database | Transaction,
+	userId: string,
+	event: RequestEvent
+) {
 	const sessionToken = generateSessionToken();
 
-	const session = await createSession(sessionToken, userId);
+	const session = await createSession(db, sessionToken, userId);
 
 	setSessionTokenCookie(event, sessionToken, session.expiresAt);
 }

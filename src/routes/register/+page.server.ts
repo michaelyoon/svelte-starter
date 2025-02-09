@@ -69,7 +69,7 @@ export const actions: Actions = {
 		await sendVerificationCode(verificationCode!, email);
 
 		// Start a session for the new user.
-		await startSession(id, event);
+		await startSession(db, id, event);
 
 		return redirect(
 			'/verify-email',

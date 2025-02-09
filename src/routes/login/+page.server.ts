@@ -51,7 +51,7 @@ export const actions: Actions = {
 		}
 
 		// Start the user session.
-		await startSession(existingUser.id, event);
+		await startSession(db, existingUser.id, event);
 
 		return redirect('/', { type: 'success', message: m.logged_in() }, cookies);
 	}

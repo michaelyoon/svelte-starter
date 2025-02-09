@@ -56,6 +56,10 @@ export const actions: Actions = {
 		// Require the user to verify their new email address.
 		await sendVerificationCode(verificationCode!, newEmail);
 
-		return redirect('/verify', { type: 'success', message: m.verification_code_sent() }, cookies);
+		return redirect(
+			'/verify-email',
+			{ type: 'success', message: m.verification_code_sent() },
+			cookies
+		);
 	}
 };
