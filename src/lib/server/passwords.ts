@@ -1,16 +1,13 @@
 import { hash, verify } from '@node-rs/argon2';
 import { generateRandomString, type RandomReader } from '@oslojs/crypto/random';
-
-export const PASSWORD_SALT_ALPHABET =
-	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-export const PASSWORD_SALT_LENGTH = 10;
-
-// Recommended minimum parameters in the Lucia demo app, generated
-// by `sv create`:
-export const MEMORY_COST = 19456;
-export const TIME_COST = 2;
-export const OUTPUT_LEN = 32;
-export const PARALLELISM = 1;
+import {
+	HASH_MEMORY_COST,
+	HASH_OUTPUT_LENGTH,
+	HASH_PARALLELISM,
+	PASSWORD_SALT_ALPHABET,
+	PASSWORD_SALT_LENGTH,
+	HASH_TIME_COST
+} from './constants';
 
 const random: RandomReader = {
 	read(bytes) {
@@ -26,10 +23,10 @@ export async function hashPassword(password: string) {
 	const passwordSalt = generatePasswordSalt();
 
 	const passwordHash = await hash(`${password}${passwordSalt}`, {
-		memoryCost: MEMORY_COST,
-		timeCost: TIME_COST,
-		outputLen: OUTPUT_LEN,
-		parallelism: PARALLELISM
+		memoryCost: HASH_MEMORY_COST,
+		timeCost: HASH_TIME_COST,
+		outputLen: HASH_OUTPUT_LENGTH,
+		parallelism: HASH_PARALLELISM
 	});
 
 	return { passwordHash, passwordSalt };
@@ -37,9 +34,9 @@ export async function hashPassword(password: string) {
 
 export async function verifyPassword(password: string, passwordHash: string, passwordSalt: string) {
 	return await verify(passwordHash, `${password}${passwordSalt}`, {
-		memoryCost: MEMORY_COST,
-		timeCost: TIME_COST,
-		outputLen: OUTPUT_LEN,
-		parallelism: PARALLELISM
+		memoryCost: HASH_MEMORY_COST,
+		timeCost: HASH_TIME_COST,
+		outputLen: HASH_OUTPUT_LENGTH,
+		parallelism: HASH_PARALLELISM
 	});
 }
