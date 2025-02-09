@@ -23,7 +23,7 @@ import {
 	type SelectVerificationCode
 } from '$lib/drizzle/schema';
 import { invalidateAllSessions, startSession } from './auth';
-import { hashPassword } from './passwords';
+import { hashPassword, validatePasswordStrength } from './passwords';
 import * as m from '$lib/paraglide/messages.js';
 import { VERIFICATION_CODE_ALPHABET, VERIFICATION_CODE_DURATION_MINUTES } from './constants';
 import { MINUTE_IN_MS, VERIFICATION_CODE_LENGTH } from '$lib/constants';
@@ -138,10 +138,10 @@ async function verifyCode(form: SuperValidated<Infer<typeof verifySchema>>, valu
 export async function handleVerifyEmailRequest(
 	event: RequestEvent,
 	{
-		message,
+		flashMessage,
 		redirectUrl
 	}: {
-		message: string;
+		flashMessage: string;
 		redirectUrl: string;
 	}
 ) {
@@ -185,16 +185,16 @@ export async function handleVerifyEmailRequest(
 		await startSession(tx, userId, event);
 	});
 
-	return redirect(redirectUrl, { type: 'success', message }, cookies);
+	return redirect(redirectUrl, { type: 'success', message: flashMessage }, cookies);
 }
 
 export async function handleResetPasswordRequest(
 	event: RequestEvent,
 	{
-		message,
+		flashMessage,
 		redirectUrl
 	}: {
-		message: string;
+		flashMessage: string;
 		redirectUrl: string;
 	}
 ) {
@@ -215,6 +215,13 @@ export async function handleResetPasswordRequest(
 	}
 
 	const verificationCode: SelectVerificationCode = result as SelectVerificationCode;
+
+	const { valid, message } = validatePasswordStrength(password);
+
+	if (!valid) {
+		setError(form, 'password', message);
+		return fail(400, { form });
+	}
 
 	const { userId } = verificationCode;
 
@@ -238,7 +245,7 @@ export async function handleResetPasswordRequest(
 		await startSession(tx, userId, event);
 	});
 
-	return redirect(redirectUrl, { type: 'success', message }, cookies);
+	return redirect(redirectUrl, { type: 'success', message: flashMessage }, cookies);
 }
 
 export async function handleResendVerificationCodeRequest(event: RequestEvent) {

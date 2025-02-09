@@ -16,7 +16,10 @@ export const load: PageServerLoad = async () => {
 
 export const actions: Actions = {
 	verify: async (event) => {
-		return await handleVerifyEmailRequest(event, { redirectUrl: '/', message: m.email_verified() });
+		return await handleVerifyEmailRequest(event, {
+			redirectUrl: '/',
+			flashMessage: m.email_verified()
+		});
 	},
 
 	resend: handleResendVerificationCodeRequest

@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { registerSchema, userTable } from '$lib/drizzle/schema/auth';
 import { generateUniqueId } from '$lib/server/random';
-import { hashPassword } from '$lib/server/passwords';
+import { hashPassword, validatePasswordStrength } from '$lib/server/passwords';
 import { startSession } from '$lib/server/auth';
 import { verifyHCaptcha } from '$lib/server/hcaptcha';
 import { generateVerificationCode, sendVerificationCode } from '$lib/server/verification';
@@ -29,11 +29,13 @@ export const actions: Actions = {
 		const success = await verifyHCaptcha(hCaptchaToken);
 
 		if (!success) {
-			setError(form, '', m.hcaptcha_verification_failure());
+			setError(form, 'hCaptchaToken', m.hcaptcha_verification_failure());
 		}
 
-		if (!form.valid) {
-			return fail(400, { form });
+		const { valid, message } = validatePasswordStrength(password);
+
+		if (!valid) {
+			setError(form, 'password', message!);
 		}
 
 		let existingUserCount = await db.$count(userTable, eq(userTable.email, email));

@@ -16,8 +16,12 @@ export const load: PageServerLoad = async () => {
 
 export const actions: Actions = {
 	verify: async (event) => {
-		await handleResetPasswordRequest(event, { redirectUrl: '/', message: m.password_reset() });
+		return await handleResetPasswordRequest(event, {
+			redirectUrl: '/',
+			flashMessage: m.password_reset()
+		});
 	},
 
+	// XXX: this doesn't work because the user is not logged in
 	resend: handleResendVerificationCodeRequest
 };

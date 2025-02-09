@@ -15,7 +15,7 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, url: { pathname }, cookies }) => {
+	default: async ({ request, cookies }) => {
 		const form = await superValidate(request, zod(forgotPasswordSchema));
 
 		if (!form.valid) {
@@ -27,14 +27,18 @@ export const actions: Actions = {
 		const user = await db.query.userTable.findFirst({ where: eq(userTable.email, email) });
 
 		if (!user) {
-			return redirect(pathname, { type: 'success', message: m.verification_code_sent() }, cookies);
+			return redirect(
+				'/reset-password/verify',
+				{ type: 'success', message: m.verification_code_sent() },
+				cookies
+			);
 		}
 
-		await db.transaction(async (tx) => {
-			const verificationCode = await generateVerificationCode(tx, user.id, email);
-
-			await sendVerificationCode(verificationCode, email);
+		const verificationCode = await db.transaction(async (tx) => {
+			return await generateVerificationCode(tx, user.id, email);
 		});
+
+		await sendVerificationCode(verificationCode, email);
 
 		return redirect(
 			'/reset-password/verify',

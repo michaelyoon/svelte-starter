@@ -6,7 +6,7 @@ import { redirect } from 'sveltekit-flash-message/server';
 import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { changePasswordSchema, userTable } from '$lib/drizzle/schema';
-import { hashPassword, verifyPassword } from '$lib/server/passwords';
+import { hashPassword, validatePasswordStrength, verifyPassword } from '$lib/server/passwords';
 import * as m from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async () => {
@@ -37,6 +37,13 @@ export const actions: Actions = {
 
 		if (!validPassword) {
 			setError(form, 'password', m.incorrect_password());
+			return fail(400, { form });
+		}
+
+		const { valid, message } = validatePasswordStrength(newPassword);
+
+		if (!valid) {
+			setError(form, 'newPassword', message);
 			return fail(400, { form });
 		}
 
