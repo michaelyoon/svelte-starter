@@ -1,16 +1,10 @@
 import type { Actions, PageServerLoad } from './$types';
-import { isActionFailure } from '@sveltejs/kit';
-import { fail, superValidate } from 'sveltekit-superforms';
+import { fail, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { redirect } from 'sveltekit-flash-message/server';
 import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import {
-	userTable,
-	verificationCodeTable,
-	verifySchema,
-	type SelectVerificationCode
-} from '$lib/drizzle/schema';
+import { userTable, verificationCodeTable, verifySchema } from '$lib/drizzle/schema';
 import { invalidateAllSessions, startSession } from '$lib/server/auth';
 import { handleResendVerificationCodeRequest, verifyCode } from '$lib/server/verification';
 import * as m from '$lib/paraglide/messages.js';
@@ -33,15 +27,16 @@ export const actions: Actions = {
 
 		const { verificationCode: value } = form.data;
 
-		const result = await verifyCode(form, value);
+		const result = await verifyCode(value);
 
-		if (isActionFailure(result)) {
-			return result;
+		const { verificationCode } = result;
+		const { valid, message } = result;
+
+		if (!valid) {
+			setError(form, 'verificationCode', message);
 		}
 
-		const verificationCode: SelectVerificationCode = result as SelectVerificationCode;
-
-		const { userId, email } = verificationCode;
+		const { userId, email } = verificationCode!;
 
 		const now = new Date();
 

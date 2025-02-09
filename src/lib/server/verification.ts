@@ -1,5 +1,4 @@
 import { error, type RequestEvent } from '@sveltejs/kit';
-import { fail, setError, type Infer, type SuperValidated } from 'sveltekit-superforms';
 import { redirect } from 'sveltekit-flash-message/server';
 import type { RandomReader } from '@oslojs/crypto/random';
 import { eq, or } from 'drizzle-orm';
@@ -8,7 +7,7 @@ import { htmlRender } from '@sveltelaunch/svelte-5-email';
 import VerificationCodeTemplate from '$lib/emails/verification-code-template.svelte';
 import { sendEmail } from '$lib/server/email';
 import { db, type Transaction } from './db';
-import { userTable, verificationCodeTable, verifySchema } from '$lib/drizzle/schema';
+import { userTable, verificationCodeTable } from '$lib/drizzle/schema';
 import * as m from '$lib/paraglide/messages.js';
 import { VERIFICATION_CODE_ALPHABET, VERIFICATION_CODE_DURATION_MINUTES } from './constants';
 import { MINUTE_IN_MS, VERIFICATION_CODE_LENGTH } from '$lib/constants';
@@ -78,36 +77,33 @@ export async function sendVerificationCode(verificationCode: string, email: stri
 	await sendEmail({ from, to: email, subject, html });
 }
 
-export async function verifyCode(form: SuperValidated<Infer<typeof verifySchema>>, value: string) {
+export async function verifyCode(value: string) {
+	let valid = true;
+	let message = '';
+
 	const verificationCode = await db.query.verificationCodeTable.findFirst({
 		where: eq(verificationCodeTable.value, value)
 	});
 
 	if (!verificationCode) {
-		setError(form, 'verificationCode', m.invalid_verification_code());
+		valid = false;
+		message = m.invalid_verification_code();
 
-		return fail(400, { form });
+		return { valid, message, verificationCode };
 	} else {
 		const { expiresAt } = verificationCode;
 
 		const now = new Date();
 
 		if (expiresAt <= now) {
-			setError(form, 'verificationCode', m.expired_verification_code());
+			valid = false;
+			message = m.expired_verification_code();
 
-			return fail(400, { form });
+			return { valid, message, verificationCode };
 		}
 	}
 
-	const { userId } = verificationCode;
-
-	const user = await db.query.userTable.findFirst({ where: eq(userTable.id, userId) });
-
-	if (!user) {
-		error(400); // Bad Request
-	}
-
-	return verificationCode;
+	return { valid, message, verificationCode };
 }
 
 export async function handleResendVerificationCodeRequest(event: RequestEvent) {

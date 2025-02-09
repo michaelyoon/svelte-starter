@@ -1,16 +1,10 @@
 import type { Actions, PageServerLoad } from './$types';
-import { isActionFailure } from '@sveltejs/kit';
 import { fail, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { redirect } from 'sveltekit-flash-message/server';
 import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import {
-	resetPasswordSchema,
-	userTable,
-	verificationCodeTable,
-	type SelectVerificationCode
-} from '$lib/drizzle/schema';
+import { resetPasswordSchema, userTable, verificationCodeTable } from '$lib/drizzle/schema';
 import { handleResendVerificationCodeRequest, verifyCode } from '$lib/server/verification';
 import { hashPassword, validatePasswordStrength } from '$lib/server/passwords';
 import { startSession, invalidateAllSessions } from '$lib/server/auth';
@@ -34,22 +28,23 @@ export const actions: Actions = {
 
 		const { verificationCode: value, password } = form.data;
 
-		const result = await verifyCode(form, value);
+		const result = await verifyCode(value);
 
-		if (isActionFailure(result)) {
-			return result;
+		const { verificationCode } = result;
+		let { valid, message } = result;
+
+		if (!valid) {
+			setError(form, 'verificationCode', message);
 		}
 
-		const verificationCode: SelectVerificationCode = result as SelectVerificationCode;
-
-		const { valid, message } = validatePasswordStrength(password);
+		({ valid, message } = validatePasswordStrength(password));
 
 		if (!valid) {
 			setError(form, 'password', message);
 			return fail(400, { form });
 		}
 
-		const { userId } = verificationCode;
+		const { userId } = verificationCode!;
 
 		const { passwordHash, passwordSalt } = await hashPassword(password);
 
