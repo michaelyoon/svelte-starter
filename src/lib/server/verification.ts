@@ -1,12 +1,5 @@
-import { error, isActionFailure, type RequestEvent } from '@sveltejs/kit';
-import {
-	fail,
-	setError,
-	superValidate,
-	type Infer,
-	type SuperValidated
-} from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { error, type RequestEvent } from '@sveltejs/kit';
+import { fail, setError, type Infer, type SuperValidated } from 'sveltekit-superforms';
 import { redirect } from 'sveltekit-flash-message/server';
 import type { RandomReader } from '@oslojs/crypto/random';
 import { eq, or } from 'drizzle-orm';
@@ -15,15 +8,7 @@ import { htmlRender } from '@sveltelaunch/svelte-5-email';
 import VerificationCodeTemplate from '$lib/emails/verification-code-template.svelte';
 import { sendEmail } from '$lib/server/email';
 import { db, type Transaction } from './db';
-import {
-	resetPasswordSchema,
-	userTable,
-	verificationCodeTable,
-	verifySchema,
-	type SelectVerificationCode
-} from '$lib/drizzle/schema';
-import { invalidateAllSessions, startSession } from './auth';
-import { hashPassword, validatePasswordStrength } from './passwords';
+import { userTable, verificationCodeTable, verifySchema } from '$lib/drizzle/schema';
 import * as m from '$lib/paraglide/messages.js';
 import { VERIFICATION_CODE_ALPHABET, VERIFICATION_CODE_DURATION_MINUTES } from './constants';
 import { MINUTE_IN_MS, VERIFICATION_CODE_LENGTH } from '$lib/constants';
@@ -93,17 +78,7 @@ export async function sendVerificationCode(verificationCode: string, email: stri
 	await sendEmail({ from, to: email, subject, html });
 }
 
-async function verifyCode(form: SuperValidated<Infer<typeof verifySchema>>, value: string) {
-	// const { request } = event;
-
-	// const form = await superValidate(request, zod(schema));
-
-	// if (!form.valid) {
-	// 	return fail(400, { form });
-	// }
-
-	// const { verificationCode: value } = form.data;
-
+export async function verifyCode(form: SuperValidated<Infer<typeof verifySchema>>, value: string) {
 	const verificationCode = await db.query.verificationCodeTable.findFirst({
 		where: eq(verificationCodeTable.value, value)
 	});
@@ -133,119 +108,6 @@ async function verifyCode(form: SuperValidated<Infer<typeof verifySchema>>, valu
 	}
 
 	return verificationCode;
-}
-
-export async function handleVerifyEmailRequest(
-	event: RequestEvent,
-	{
-		flashMessage,
-		redirectUrl
-	}: {
-		flashMessage: string;
-		redirectUrl: string;
-	}
-) {
-	const { request } = event;
-
-	const form = await superValidate(request, zod(verifySchema));
-
-	if (!form.valid) {
-		return fail(400, { form });
-	}
-
-	const { verificationCode: value } = form.data;
-
-	const result = await verifyCode(form, value);
-
-	if (isActionFailure(result)) {
-		return result;
-	}
-
-	const verificationCode: SelectVerificationCode = result as SelectVerificationCode;
-
-	const { cookies } = event;
-
-	const { userId, email } = verificationCode;
-
-	const now = new Date();
-
-	await db.transaction(async (tx) => {
-		await tx
-			.update(userTable)
-			.set({ email, verifiedAt: now, updatedAt: now })
-			.where(eq(userTable.id, userId));
-
-		await tx.delete(verificationCodeTable).where(eq(verificationCodeTable.userId, userId));
-
-		// "All sessions of a user should be invalidated when their email is verified."
-		// - https://thecopenhagenbook.com/email-verification#email-verification-codes
-		await invalidateAllSessions(tx, userId, event);
-
-		// Start a session for the now-verified user, so that they don't have to login again.
-		await startSession(tx, userId, event);
-	});
-
-	return redirect(redirectUrl, { type: 'success', message: flashMessage }, cookies);
-}
-
-export async function handleResetPasswordRequest(
-	event: RequestEvent,
-	{
-		flashMessage,
-		redirectUrl
-	}: {
-		flashMessage: string;
-		redirectUrl: string;
-	}
-) {
-	const { request, cookies } = event;
-
-	const form = await superValidate(request, zod(resetPasswordSchema));
-
-	if (!form.valid) {
-		return fail(400, { form });
-	}
-
-	const { verificationCode: value, password } = form.data;
-
-	const result = await verifyCode(form, value);
-
-	if (isActionFailure(result)) {
-		return result;
-	}
-
-	const verificationCode: SelectVerificationCode = result as SelectVerificationCode;
-
-	const { valid, message } = validatePasswordStrength(password);
-
-	if (!valid) {
-		setError(form, 'password', message);
-		return fail(400, { form });
-	}
-
-	const { userId } = verificationCode;
-
-	const { passwordHash, passwordSalt } = await hashPassword(password);
-
-	const now = new Date();
-
-	await db.transaction(async (tx) => {
-		// Update the user's password.
-		await tx
-			.update(userTable)
-			.set({ passwordHash, passwordSalt, verifiedAt: now, updatedAt: now })
-			.where(eq(userTable.id, userId));
-
-		// Delete the verification code.
-		await tx.delete(verificationCodeTable).where(eq(verificationCodeTable.value, value));
-
-		await invalidateAllSessions(tx, userId, event);
-
-		// Start a session for the newly-verified user, so that they don't have to login again.
-		await startSession(tx, userId, event);
-	});
-
-	return redirect(redirectUrl, { type: 'success', message: flashMessage }, cookies);
 }
 
 export async function handleResendVerificationCodeRequest(event: RequestEvent) {

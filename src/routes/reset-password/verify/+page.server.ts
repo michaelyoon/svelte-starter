@@ -1,11 +1,19 @@
 import type { Actions, PageServerLoad } from './$types';
-import { superValidate } from 'sveltekit-superforms';
+import { isActionFailure } from '@sveltejs/kit';
+import { fail, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { resetPasswordSchema } from '$lib/drizzle/schema';
+import { redirect } from 'sveltekit-flash-message/server';
+import { eq } from 'drizzle-orm';
+import { db } from '$lib/server/db';
 import {
-	handleResendVerificationCodeRequest,
-	handleResetPasswordRequest
-} from '$lib/server/verification';
+	resetPasswordSchema,
+	userTable,
+	verificationCodeTable,
+	type SelectVerificationCode
+} from '$lib/drizzle/schema';
+import { handleResendVerificationCodeRequest, verifyCode } from '$lib/server/verification';
+import { hashPassword, validatePasswordStrength } from '$lib/server/passwords';
+import { startSession, invalidateAllSessions } from '$lib/server/auth';
 import * as m from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async () => {
@@ -16,10 +24,54 @@ export const load: PageServerLoad = async () => {
 
 export const actions: Actions = {
 	verify: async (event) => {
-		return await handleResetPasswordRequest(event, {
-			redirectUrl: '/',
-			flashMessage: m.password_reset()
+		const { request, cookies } = event;
+
+		const form = await superValidate(request, zod(resetPasswordSchema));
+
+		if (!form.valid) {
+			return fail(400, { form });
+		}
+
+		const { verificationCode: value, password } = form.data;
+
+		const result = await verifyCode(form, value);
+
+		if (isActionFailure(result)) {
+			return result;
+		}
+
+		const verificationCode: SelectVerificationCode = result as SelectVerificationCode;
+
+		const { valid, message } = validatePasswordStrength(password);
+
+		if (!valid) {
+			setError(form, 'password', message);
+			return fail(400, { form });
+		}
+
+		const { userId } = verificationCode;
+
+		const { passwordHash, passwordSalt } = await hashPassword(password);
+
+		const now = new Date();
+
+		await db.transaction(async (tx) => {
+			// Update the user's password.
+			await tx
+				.update(userTable)
+				.set({ passwordHash, passwordSalt, verifiedAt: now, updatedAt: now })
+				.where(eq(userTable.id, userId));
+
+			// Delete the verification code.
+			await tx.delete(verificationCodeTable).where(eq(verificationCodeTable.value, value));
+
+			await invalidateAllSessions(tx, userId, event);
+
+			// Start a session for the newly-verified user, so that they don't have to login again.
+			await startSession(tx, userId, event);
 		});
+
+		return redirect('/', { type: 'success', message: m.password_reset() }, cookies);
 	},
 
 	// XXX: this doesn't work because the user is not logged in
